@@ -17,7 +17,7 @@ Environment Variables:
   NIXOS_MODULE_PATH  - Path to the NixOS configuration module
 
 Commands:
-  infra  - Build and apply infrastructure using OpenTofu
+  infra  - Build and apply infrastructure using Terraform
   deploy - Deploy NixOS configuration using Colmena`,
 }
 

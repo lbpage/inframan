@@ -1,6 +1,6 @@
 # Inframan Example
 
-This example demonstrates how to use inframan to provision AWS infrastructure with Terranix/OpenTofu and deploy a NixOS configuration with Colmena.
+This example demonstrates how to use inframan to provision AWS infrastructure with Terranix/Terraform and deploy a NixOS configuration with Colmena.
 
 ## Files
 
@@ -39,7 +39,7 @@ nix run . -- infra
 
 This will:
 - Compile `infrastructure.nix` to `config.tf.json` via Terranix
-- Run `tofu init` and `tofu apply`
+- Run `terraform init` and `terraform apply`
 - Provision the AWS EC2 instance
 
 ### 4. Deploy NixOS configuration
@@ -49,7 +49,7 @@ nix run . -- deploy
 ```
 
 This will:
-- Read the instance IP from `tofu output`
+- Read the instance IP from `terraform output`
 - Generate an ephemeral `hive.nix` with the target IP
 - Run `colmena apply` to deploy the NixOS configuration
 
@@ -82,7 +82,7 @@ Extend `infrastructure.nix` with multiple `aws_instance` resources and update `m
 To destroy the infrastructure:
 
 ```bash
-cd .runner-workdir
-tofu destroy
+cd .inframan/terraform
+terraform destroy
 ```
 

@@ -15,12 +15,16 @@ type ColmenaExecutor struct {
 
 // NewColmenaExecutor creates a new colmena executor
 func NewColmenaExecutor() (*ColmenaExecutor, error) {
-	cwd, err := os.Getwd()
+	workDir, err := GetColmenaDir()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get working directory: %w", err)
+		return nil, fmt.Errorf("failed to get colmena directory: %w", err)
 	}
 
-	workDir := filepath.Join(cwd, defaultWorkdir)
+	// Ensure the directory exists
+	if err := EnsureDir(workDir); err != nil {
+		return nil, err
+	}
+
 	return &ColmenaExecutor{workDir: workDir}, nil
 }
 
@@ -58,7 +62,7 @@ func (c *ColmenaExecutor) GenerateHive(modulePath, targetIP string) (string, err
 	hiveContent := fmt.Sprintf(hiveTemplate, nixPath, targetIP)
 
 	// Write to hive.nix
-	hivePath := filepath.Join(c.workDir, "hive.nix")
+	hivePath := filepath.Join(c.workDir, HiveFileName)
 	if err := os.WriteFile(hivePath, []byte(hiveContent), 0644); err != nil {
 		return "", fmt.Errorf("failed to write hive.nix: %w", err)
 	}
@@ -103,13 +107,13 @@ func (c *ColmenaExecutor) ApplyWithTag(project string) error {
 // Destroy runs colmena reboot (colmena doesn't have destroy, this is a placeholder)
 func (c *ColmenaExecutor) Destroy(hivePath string) error {
 	// Note: Colmena doesn't have a destroy command
-	// Infrastructure destruction should be done via tofu destroy
-	return fmt.Errorf("colmena destroy is not supported; use 'inframan infra' with tofu destroy instead")
+	// Infrastructure destruction should be done via terraform destroy
+	return fmt.Errorf("colmena destroy is not supported; use 'terraform destroy' in .inframan/terraform instead")
 }
 
 // GetHivePath returns the path to the generated hive.nix
 func (c *ColmenaExecutor) GetHivePath() string {
-	return filepath.Join(c.workDir, "hive.nix")
+	return filepath.Join(c.workDir, HiveFileName)
 }
 
 // ValidateHive checks if the hive.nix is valid by running colmena eval

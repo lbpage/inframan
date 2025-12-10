@@ -37,7 +37,7 @@
         pkgs.writeShellApplication {
           name = "runner";
           runtimeInputs = [
-            pkgs.opentofu
+            pkgs.terraform
             colmena.packages.${system}.colmena
             pkgs.nix
           ];
@@ -78,7 +78,7 @@
           inputsFrom = [ self.packages.${system}.default ];
           packages = [
             pkgs.go
-            pkgs.opentofu
+            pkgs.terraform
             colmena.packages.${system}.colmena
             pkgs.nix
           ];

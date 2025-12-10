@@ -12,11 +12,11 @@ import (
 func NewInfraCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "infra",
-		Short: "Apply infrastructure using Terranix and OpenTofu",
+		Short: "Apply infrastructure using Terranix and Terraform",
 		Long: `Infra orchestrates infrastructure provisioning:
 1. Reads the Terranix JSON config from INFRA_CONFIG_JSON env var
-2. Copies config to .runner-workdir/config.tf.json
-3. Runs tofu init and tofu apply
+2. Copies config to .inframan/terraform/config.tf.json
+3. Runs terraform init and terraform apply
 4. Passes through AWS credentials from environment`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Get INFRA_CONFIG_JSON from environment
@@ -30,28 +30,34 @@ func NewInfraCommand() *cobra.Command {
 				return fmt.Errorf("INFRA_CONFIG_JSON file does not exist: %s", infraConfigJSON)
 			}
 
-			// Create tofu executor
-			tofuExec, err := orchestrator.NewTofuExecutor()
+			// Create terranix executor to copy config
+			terranixExec, err := orchestrator.NewTerranixExecutor()
 			if err != nil {
-				return fmt.Errorf("failed to create tofu executor: %w", err)
+				return fmt.Errorf("failed to create terranix executor: %w", err)
 			}
 
 			// Setup workdir and copy config
 			fmt.Println("Setting up infrastructure workspace...")
-			if err := tofuExec.SetupWorkdir(infraConfigJSON); err != nil {
+			if _, err := terranixExec.BuildFromConfig(infraConfigJSON); err != nil {
 				return fmt.Errorf("failed to setup workdir: %w", err)
 			}
 
-			// Run tofu init
-			fmt.Println("Initializing OpenTofu...")
-			if err := tofuExec.Init(); err != nil {
-				return fmt.Errorf("tofu init failed: %w", err)
+			// Create terraform executor
+			terraformExec, err := orchestrator.NewTerraformExecutor()
+			if err != nil {
+				return fmt.Errorf("failed to create terraform executor: %w", err)
 			}
 
-			// Run tofu apply
+			// Run terraform init
+			fmt.Println("Initializing Terraform...")
+			if err := terraformExec.Init(); err != nil {
+				return fmt.Errorf("terraform init failed: %w", err)
+			}
+
+			// Run terraform apply
 			fmt.Println("Applying infrastructure...")
-			if err := tofuExec.Apply(); err != nil {
-				return fmt.Errorf("tofu apply failed: %w", err)
+			if err := terraformExec.Apply(); err != nil {
+				return fmt.Errorf("terraform apply failed: %w", err)
 			}
 
 			fmt.Println("Infrastructure applied successfully!")
@@ -61,4 +67,3 @@ func NewInfraCommand() *cobra.Command {
 
 	return cmd
 }
-

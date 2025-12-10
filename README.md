@@ -6,14 +6,14 @@ A CLI tool that bridges [Terranix](https://terranix.org/) (Infrastructure as Nix
 
 Inframan orchestrates the complete lifecycle of NixOS infrastructure:
 
-1. **Infrastructure Provisioning** - Uses Terranix to define infrastructure as Nix, compiled to Terraform JSON and applied via OpenTofu
+1. **Infrastructure Provisioning** - Uses Terranix to define infrastructure as Nix, compiled to Terraform JSON and applied via Terraform
 2. **NixOS Deployment** - Automatically deploys NixOS configurations to provisioned instances using Colmena
 
 ## Features
 
 - 🔧 **Pure Nix Configuration** - Define both infrastructure and machine configuration in Nix
 - 🚀 **Single Command Workflow** - Provision and deploy with simple CLI commands
-- 🔄 **Dynamic Target Discovery** - Automatically reads instance IPs from OpenTofu state
+- 🔄 **Dynamic Target Discovery** - Automatically reads instance IPs from Terraform state
 - 📦 **Nix Flake Integration** - Use `inframan.lib.mkRunner` to create project-specific runners
 
 ## Installation
@@ -84,7 +84,7 @@ nix run . -- deploy
 
 | Command | Description |
 |---------|-------------|
-| `inframan infra` | Apply infrastructure using Terranix and OpenTofu |
+| `inframan infra` | Apply infrastructure using Terranix and Terraform |
 | `inframan deploy` | Deploy NixOS configuration using Colmena |
 
 ### Environment Variables
@@ -99,22 +99,27 @@ nix run . -- deploy
 ## Architecture
 
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│ infrastructure  │────▶│    Terranix     │────▶│  config.tf.json │
-│     .nix        │     │                 │     │                 │
-└─────────────────┘     └─────────────────┘     └────────┬────────┘
-                                                         │
-                                                         ▼
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   machine.nix   │────▶│    Colmena      │────▶│  NixOS Instance │
-│                 │     │                 │     │                 │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────────────────────┐
+│ infrastructure  │────▶│    Terranix     │────▶│  .inframan/terraform/           │
+│     .nix        │     │                 │     │    config.tf.json               │
+└─────────────────┘     └─────────────────┘     └────────────────┬────────────────┘
+                                                                  │
+                                                                  ▼
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────────────────────┐
+│   machine.nix   │────▶│    Colmena      │────▶│  NixOS Instance                 │
+│                 │     │                 │     │                                 │
+└─────────────────┘     └─────────────────┘     └─────────────────────────────────┘
                                  ▲
-                                 │ IP from tofu output
+                                 │ IP from terraform output
                         ┌────────┴────────┐
-                        │    OpenTofu     │
+                        │    Terraform    │
                         │                 │
                         └─────────────────┘
+
+Generated files are stored in:
+  .inframan/
+  ├── terraform/    # Terraform state, config.tf.json
+  └── colmena/      # Generated hive.nix
 ```
 
 ## Example

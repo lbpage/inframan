@@ -14,8 +14,8 @@ func NewDeployCommand() *cobra.Command {
 		Use:   "deploy",
 		Short: "Deploy NixOS configuration using Colmena",
 		Long: `Deploy orchestrates NixOS deployment:
-1. Fetches infrastructure state from OpenTofu
-2. Parses target IP from tofu output
+1. Fetches infrastructure state from Terraform
+2. Parses target IP from terraform output
 3. Generates ephemeral hive.nix with injected IP
 4. Runs colmena apply to deploy to the target`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -30,15 +30,15 @@ func NewDeployCommand() *cobra.Command {
 				return fmt.Errorf("NIXOS_MODULE_PATH file does not exist: %s", nixosModulePath)
 			}
 
-			// Create tofu executor to get output
-			tofuExec, err := orchestrator.NewTofuExecutor()
+			// Create terraform executor to get output
+			terraformExec, err := orchestrator.NewTerraformExecutor()
 			if err != nil {
-				return fmt.Errorf("failed to create tofu executor: %w", err)
+				return fmt.Errorf("failed to create terraform executor: %w", err)
 			}
 
-			// Get target IP from tofu output
+			// Get target IP from terraform output
 			fmt.Println("Fetching infrastructure state...")
-			targetIP, err := tofuExec.GetTargetIP()
+			targetIP, err := terraformExec.GetTargetIP()
 			if err != nil {
 				return fmt.Errorf("failed to get target IP: %w", err)
 			}
@@ -71,4 +71,3 @@ func NewDeployCommand() *cobra.Command {
 
 	return cmd
 }
-
