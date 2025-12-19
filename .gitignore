@@ -32,3 +32,24 @@ coverage.out
 *.tmp
 *.log
 
+# Terraform files (may be generated in .inframan or elsewhere)
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate.d/
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# SSH keys and secrets
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+*.pub
+
