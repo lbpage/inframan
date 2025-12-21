@@ -18,8 +18,9 @@ Environment Variables:
   PROJECT_NAME       - Project name for organizing .inframan/<project>/ folders (default: "default")
 
 Commands:
-  infra  - Build and apply infrastructure using Terraform
-  deploy - Deploy NixOS configuration using Colmena`,
+  infra   - Build and apply infrastructure using Terraform
+  deploy  - Deploy NixOS configuration using Colmena
+  destroy - Destroy infrastructure using Terraform`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -31,4 +32,5 @@ func init() {
 	// Add subcommands
 	rootCmd.AddCommand(commands.NewInfraCommand())
 	rootCmd.AddCommand(commands.NewDeployCommand())
+	rootCmd.AddCommand(commands.NewDestroyCommand())
 }
