@@ -197,6 +197,10 @@ See the [example/](./example/) directory for a complete working example that:
 - AWS credentials (for the example)
 - SSH key for instance access
 
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on how to contribute to this project.
+
 ## License
 
 MIT License - see [LICENSE](./LICENSE) for details.

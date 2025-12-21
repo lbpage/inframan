@@ -1,10 +1,10 @@
-# Terranix configuration for AWS Account 1 (Production)
+# Terranix configuration for AWS Account 2 (Development)
 # This gets compiled to config.tf.json and applied by OpenTofu
-# Credentials: AWS_ACCOUNT1_ACCESS_KEY_ID, AWS_ACCOUNT1_SECRET_ACCESS_KEY
+# Credentials: AWS_ACCOUNT2_ACCESS_KEY_ID, AWS_ACCOUNT2_SECRET_ACCESS_KEY
 {
-  # AWS Provider configuration for Account 1
+  # AWS Provider configuration for Account 2
   provider.aws = {
-    region = "us-east-1";
+    region = "us-west-2";  # Different region for dev account
     # Credentials come from environment variables
     access_key = "\${var.aws_access_key}";
     secret_key = "\${var.aws_secret_key}";
@@ -12,13 +12,13 @@
 
   # Variables for AWS credentials
   variable.aws_access_key = {
-    description = "AWS Access Key for Account 1";
+    description = "AWS Access Key for Account 2";
     type = "string";
     sensitive = true;
   };
 
   variable.aws_secret_key = {
-    description = "AWS Secret Key for Account 1";
+    description = "AWS Secret Key for Account 2";
     type = "string";
     sensitive = true;
   };
@@ -53,14 +53,14 @@
 
   # SSH Key Pair
   resource.aws_key_pair.deployer = {
-    key_name = "inframan-account1-deployer";
+    key_name = "inframan-account2-deployer";
     public_key = "\${var.ssh_public_key}";
   };
 
   # Security Group allowing SSH and HTTP/HTTPS
   resource.aws_security_group.main = {
-    name = "inframan-account1-sg";
-    description = "Security group for inframan-managed instance (Account 1)";
+    name = "inframan-account2-sg";
+    description = "Security group for inframan-managed instance (Account 2)";
 
     ingress = [
       {
@@ -113,8 +113,8 @@
     ];
 
     tags = {
-      Name = "inframan-account1-sg";
-      Environment = "production";
+      Name = "inframan-account2-sg";
+      Environment = "development";
     };
   };
 
@@ -131,9 +131,9 @@
     };
 
     tags = {
-      Name = "inframan-account1-instance";
+      Name = "inframan-account2-instance";
       ManagedBy = "inframan";
-      Environment = "production";
+      Environment = "development";
     };
   };
 

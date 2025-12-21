@@ -1,5 +1,5 @@
 {
-  description = "Example usage of inframan for Nix-Go-GitOps workflow";
+  description = "Example usage of inframan for managing multiple AWS accounts";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -11,19 +11,35 @@
       system = "x86_64-linux";
     in
     {
-      # Create the runner using inframan's lib.mkRunner
-      packages.${system}.default = inframan.lib.mkRunner {
+      # Account 1: Production AWS account
+      packages.${system}.account1 = inframan.lib.mkRunner {
         inherit system;
-        infraConfig = ./infrastructure.nix;  # Terranix configuration
-        machineConfig = ./machine.nix;       # NixOS module for deployment
-        # projectName = "my-project";        # Optional: organize .inframan/<projectName>/ folders
+        infraConfig = ./infrastructure-account1.nix;
+        machineConfig = ./machine-account1.nix;
+        projectName = "account1";
       };
 
-      # Convenience alias
-      apps.${system}.default = {
+      apps.${system}.account1 = {
         type = "app";
-        program = "${self.packages.${system}.default}/bin/runner";
+        program = "${self.packages.${system}.account1}/bin/runner";
       };
+
+      # Account 2: Development AWS account
+      packages.${system}.account2 = inframan.lib.mkRunner {
+        inherit system;
+        infraConfig = ./infrastructure-account2.nix;
+        machineConfig = ./machine-account2.nix;
+        projectName = "account2";
+      };
+
+      apps.${system}.account2 = {
+        type = "app";
+        program = "${self.packages.${system}.account2}/bin/runner";
+      };
+
+      # Default points to account1 for convenience
+      packages.${system}.default = self.packages.${system}.account1;
+      apps.${system}.default = self.apps.${system}.account1;
     };
 }
 
