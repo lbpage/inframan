@@ -116,19 +116,25 @@ func connectToInstance(target, user, identityFile string) error {
 	// Build SSH command arguments
 	sshArgs := []string{"ssh"}
 
-	// Add identity file if specified, or fall back to SSH_KEY_PATH env var
-	if identityFile != "" {
+	// Add SSH config file if SSH_CONFIG_PATH is set (takes precedence)
+	if sshConfigPath := orchestrator.GetSSHConfigPath(); sshConfigPath != "" {
+		sshArgs = append(sshArgs, "-F", sshConfigPath)
+	} else if identityFile != "" {
+		// Add identity file if specified via flag
 		sshArgs = append(sshArgs, "-i", identityFile)
 	} else if sshKeyPath := orchestrator.GetSSHKeyPath(); sshKeyPath != "" {
+		// Fall back to SSH_KEY_PATH env var
 		sshArgs = append(sshArgs, "-i", sshKeyPath)
 	}
 
-	// Add common SSH options for convenience
-	sshArgs = append(sshArgs,
-		"-o", "StrictHostKeyChecking=accept-new",
-		"-o", "UserKnownHostsFile=/dev/null",
-		"-o", "LogLevel=ERROR",
-	)
+	// Add common SSH options for convenience (only if not using custom config)
+	if orchestrator.GetSSHConfigPath() == "" {
+		sshArgs = append(sshArgs,
+			"-o", "StrictHostKeyChecking=accept-new",
+			"-o", "UserKnownHostsFile=/dev/null",
+			"-o", "LogLevel=ERROR",
+		)
+	}
 
 	// Add target
 	sshTarget := fmt.Sprintf("%s@%s", user, info.PublicIP)

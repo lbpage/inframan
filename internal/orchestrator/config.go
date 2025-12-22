@@ -40,6 +40,11 @@ func GetSSHKeyPath() string {
 	return os.Getenv("SSH_KEY_PATH")
 }
 
+// GetSSHConfigPath returns the SSH config file path from environment, or empty string if not set
+func GetSSHConfigPath() string {
+	return os.Getenv("SSH_CONFIG_PATH")
+}
+
 // GetInframanDir returns the absolute path to the .inframan directory
 func GetInframanDir() (string, error) {
 	cwd, err := os.Getwd()

@@ -75,8 +75,11 @@ func (c *ColmenaExecutor) GenerateHive(modulePath, targetIP string) (string, err
 func (c *ColmenaExecutor) Apply(hivePath string) error {
 	args := []string{"apply", "--on", "target-node", "-f", hivePath}
 
-	// Add SSH key option if SSH_KEY_PATH is set
-	if sshKeyPath := GetSSHKeyPath(); sshKeyPath != "" {
+	// Add SSH config file if SSH_CONFIG_PATH is set (takes precedence)
+	if sshConfigPath := GetSSHConfigPath(); sshConfigPath != "" {
+		args = append(args, "--ssh-config", sshConfigPath)
+	} else if sshKeyPath := GetSSHKeyPath(); sshKeyPath != "" {
+		// Fall back to SSH key option if SSH_KEY_PATH is set
 		args = append(args, "--ssh-option", fmt.Sprintf("IdentityFile=%s", sshKeyPath))
 		// Also disable strict host key checking for new hosts
 		args = append(args, "--ssh-option", "StrictHostKeyChecking=accept-new")

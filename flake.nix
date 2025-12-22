@@ -26,7 +26,9 @@
       #                  Defaults to "default" if not specified
       #   - sshKeyPath: (Optional) Path to SSH private key for deployment and SSH access
       #                 Can be absolute path or relative to the project root
-      lib.mkRunner = { system, infraConfig, machineConfig, projectName ? "default", sshKeyPath ? null }:
+      #   - sshConfigPath: (Optional) Path to SSH config file for deployment and SSH access
+      #                    Useful for multi-user setups where each user has different keys
+      lib.mkRunner = { system, infraConfig, machineConfig, projectName ? "default", sshKeyPath ? null, sshConfigPath ? null }:
         let
           pkgs = import nixpkgs {
             config.allowUnfree = true;
@@ -46,6 +48,11 @@
           sshKeyExport = if sshKeyPath != null
             then ''export SSH_KEY_PATH="${sshKeyPath}"''
             else "";
+
+          # SSH config export line (only if sshConfigPath is provided)
+          sshConfigExport = if sshConfigPath != null
+            then ''export SSH_CONFIG_PATH="${sshConfigPath}"''
+            else "";
         in
         pkgs.writeShellApplication {
           name = "runner";
@@ -60,6 +67,7 @@
             export NIXOS_MODULE_PATH="${machineConfig}"
             export PROJECT_NAME="${projectName}"
             ${sshKeyExport}
+            ${sshConfigExport}
 
             # Run the inframan binary with all arguments
             exec ${inframanBin}/bin/inframan "$@"
