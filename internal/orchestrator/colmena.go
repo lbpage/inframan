@@ -39,6 +39,7 @@ const hiveTemplate = `{
     imports = [ (import %s) ]; # Import the user's module
     deployment.targetHost = "%s"; # Injected IP
     deployment.targetUser = "root";
+    deployment.buildOnTarget = true; # Build on remote instance, not locally
   };
 }
 `
