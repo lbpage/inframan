@@ -63,6 +63,46 @@ func (t *TerraformExecutor) Init() error {
 	return nil
 }
 
+// IsInitialized checks if terraform has been initialized in the workdir
+func (t *TerraformExecutor) IsInitialized() bool {
+	terraformDir := filepath.Join(t.workDir, ".terraform")
+	_, err := os.Stat(terraformDir)
+	return err == nil
+}
+
+// EnsureInit runs terraform init if not already initialized
+// This is useful for commands that need terraform state (like output, destroy)
+// but may be run in CI environments with remote backends where state isn't checked in
+func (t *TerraformExecutor) EnsureInit() error {
+	if t.IsInitialized() {
+		return nil
+	}
+	fmt.Println("Initializing Terraform...")
+	return t.Init()
+}
+
+// ensureInitInDir ensures terraform is initialized in the specified directory
+// This is a helper for standalone functions that don't use TerraformExecutor
+func ensureInitInDir(terraformDir string) error {
+	dotTerraformDir := filepath.Join(terraformDir, ".terraform")
+	if _, err := os.Stat(dotTerraformDir); err == nil {
+		// Already initialized
+		return nil
+	}
+
+	fmt.Printf("Initializing Terraform in %s...\n", terraformDir)
+	cmd := exec.Command("terraform", "init")
+	cmd.Dir = terraformDir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Env = os.Environ()
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("terraform init failed: %w", err)
+	}
+	return nil
+}
+
 // Apply runs terraform apply
 func (t *TerraformExecutor) Apply() error {
 	cmd := exec.Command("terraform", "apply")
@@ -112,6 +152,11 @@ type TerraformOutput struct {
 
 // GetTargetIP retrieves the public IP from terraform output
 func (t *TerraformExecutor) GetTargetIP() (string, error) {
+	// Ensure terraform is initialized (needed for remote backends in CI)
+	if err := t.EnsureInit(); err != nil {
+		return "", fmt.Errorf("failed to initialize terraform: %w", err)
+	}
+
 	cmd := exec.Command("terraform", "output", "-json")
 	cmd.Dir = t.workDir
 	cmd.Env = os.Environ()
@@ -163,6 +208,11 @@ func GetInstancesForProject(projectName string) ([]*InstanceInfo, error) {
 	// Check if terraform directory exists
 	if _, err := os.Stat(terraformDir); os.IsNotExist(err) {
 		return nil, fmt.Errorf("project %q does not exist", projectName)
+	}
+
+	// Ensure terraform is initialized (needed for remote backends in CI)
+	if err := ensureInitInDir(terraformDir); err != nil {
+		return nil, fmt.Errorf("failed to initialize terraform for project %q: %w", projectName, err)
 	}
 
 	cmd := exec.Command("terraform", "output", "-json")

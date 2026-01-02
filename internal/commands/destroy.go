@@ -26,6 +26,11 @@ that were created during infrastructure provisioning.`,
 				return fmt.Errorf("failed to create terraform executor: %w", err)
 			}
 
+			// Ensure terraform is initialized (needed for remote backends in CI)
+			if err := terraformExec.EnsureInit(); err != nil {
+				return fmt.Errorf("failed to initialize terraform: %w", err)
+			}
+
 			// Run terraform destroy
 			fmt.Println("Destroying infrastructure...")
 			if err := terraformExec.Destroy(); err != nil {
@@ -39,4 +44,3 @@ that were created during infrastructure provisioning.`,
 
 	return cmd
 }
-
